@@ -55,7 +55,7 @@ public class ApiResponseStatus {
         final String senderPassword = "lovq evli zniy iivy";  // Use an App Password for Gmail
 
         // Receiver's email
-        String recipientEmail = "keshav@snva.com, ambar.singh@snva.com";
+        String recipientEmail = "ambar.singh@snva.com";
 
         // SMTP Server Properties
         Properties props = new Properties();
