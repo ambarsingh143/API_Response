@@ -25,7 +25,7 @@ public class ApiResponseStatus {
     public static void checkApisAndSendEmail() {
         StringBuilder emailContent = new StringBuilder();
         emailContent.append("<html><body>");
-        emailContent.append("<h2>API Response Status Updates</h2>");
+        emailContent.append("<h2>API Response Status Updates.</h2>");
         emailContent.append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>");
         emailContent.append("<tr><th>Serial No.</th><th>URL</th><th>Response Status</th><th>Status Code</th></tr>");
 
@@ -44,7 +44,7 @@ public class ApiResponseStatus {
                 statusCode = connection.getResponseCode();
                 System.out.println("Status Code for " + apiUrl + ": " + statusCode);
 
-                statusIcon = statusCode >= 200 && statusCode < 300 ? "✅" : "⚠️"; // Success or Warning icon
+                statusIcon = statusCode == 200  ? "✅" : "❌"; // Success or Warning icon
                 statusCodeText = String.valueOf(statusCode);
             } catch (IOException e) {
                 statusIcon = "❌"; // Error icon
