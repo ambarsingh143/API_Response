@@ -11,53 +11,56 @@ import javax.mail.*;
 import javax.mail.internet.*;
 
 public class ApiResponseStatus {
-    // List of API URLs to check
     private static final String[] API_URLS = {
         "https://routes.traveloes.com/",
-        "https://gfs.travomint.com",  // Example API
-//        "https://api.github.com" // Add more URLs as needed
+        "https://gfs.travomint.com",
     };
 
     public static void main(String[] args) {
-        // Schedule the task to run every hour
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(ApiResponseStatus::checkApisAndSendEmail, 0, 1, TimeUnit.HOURS);
     }
 
     public static void checkApisAndSendEmail() {
         StringBuilder emailContent = new StringBuilder();
-        emailContent.append("API Response Status Updates:\n\n");
+        emailContent.append("<html><body>");
+        emailContent.append("<h2>API Response Status Updates</h2>");
+        emailContent.append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>");
+        emailContent.append("<tr><th>URL</th><th>Response Code</th><th>Status Code</th></tr>");
 
         for (String apiUrl : API_URLS) {
             try {
-                // Fetch HTTP Response Status Code
                 URL url = new URL(apiUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 int statusCode = connection.getResponseCode();
                 System.out.println("Status Code for " + apiUrl + ": " + statusCode);
 
-                // Append status code to email content
-                emailContent.append("URL: ").append(apiUrl).append("\nStatus Code: ").append(statusCode).append("\n\n");
+                emailContent.append("<tr>")
+                            .append("<td>").append(apiUrl).append("</td>")
+                            .append("<td style='text-align: center;'>").append("✅").append("</td>")
+                            .append("<td style='text-align: center;'>").append(statusCode).append("</td>")
+                            .append("</tr>");
             } catch (IOException e) {
-                emailContent.append("URL: ").append(apiUrl).append("\nStatus Code: ERROR - ").append(e.getMessage()).append("\n\n");
+                emailContent.append("<tr>")
+                            .append("<td>").append(apiUrl).append("</td>")
+                            .append("<td style='text-align: center;'>").append("❌").append("</td>")
+                            .append("<td style='color: red;'>ERROR - ").append(e.getMessage()).append("</td>")
+                            .append("</tr>");
                 e.printStackTrace();
             }
         }
 
-        // Send email with all API statuses
+        emailContent.append("</table>");
+        emailContent.append("</body></html>");
         sendEmail(emailContent.toString());
     }
 
     public static void sendEmail(String emailContent) {
-        // Sender's email credentials
         final String senderEmail = "ambar.singh@snva.com";
-        final String senderPassword = "lovq evli zniy iivy";  // Use an App Password for Gmail
-
-        // Receiver's email
+        final String senderPassword = "lovq evli zniy iivy";
         String recipientEmail = "ambar.singh@snva.com";
 
-        // SMTP Server Properties
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -65,7 +68,6 @@ public class ApiResponseStatus {
         props.put("mail.smtp.port", "587");
         props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
 
-        // Authenticate sender
         Session session = Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(senderEmail, senderPassword);
@@ -73,14 +75,12 @@ public class ApiResponseStatus {
         });
 
         try {
-            // Create Email Message
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
             message.setSubject("API Response Status Updates");
-            message.setText(emailContent);
+            message.setContent(emailContent, "text/html; charset=utf-8");
 
-            // Send Email
             Transport.send(message);
             System.out.println("✅ Email Sent Successfully with API Status Updates");
         } catch (MessagingException e) {
