@@ -14,6 +14,7 @@ public class ApiResponseStatus {
     private static final String[] API_URLS = {
         "https://routes.traveloes.com/",
         "https://gfs.travomint.com",
+        "https://payment.udantu.com/"
     };
 
     public static void main(String[] args) {
@@ -26,29 +27,38 @@ public class ApiResponseStatus {
         emailContent.append("<html><body>");
         emailContent.append("<h2>API Response Status Updates</h2>");
         emailContent.append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>");
-        emailContent.append("<tr><th>URL</th><th>Response Code</th><th>Status Code</th></tr>");
+        emailContent.append("<tr><th>Serial No.</th><th>URL</th><th>Response Status</th><th>Status Code</th></tr>");
 
+        int serialNumber = 1;
         for (String apiUrl : API_URLS) {
+            String statusIcon;
+            String statusCodeText;
+            int statusCode;
+
             try {
                 URL url = new URL(apiUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
-                int statusCode = connection.getResponseCode();
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                statusCode = connection.getResponseCode();
                 System.out.println("Status Code for " + apiUrl + ": " + statusCode);
 
-                emailContent.append("<tr>")
-                            .append("<td>").append(apiUrl).append("</td>")
-                            .append("<td style='text-align: center;'>").append("✅").append("</td>")
-                            .append("<td style='text-align: center;'>").append(statusCode).append("</td>")
-                            .append("</tr>");
+                statusIcon = statusCode >= 200 && statusCode < 300 ? "✅" : "⚠️"; // Success or Warning icon
+                statusCodeText = String.valueOf(statusCode);
             } catch (IOException e) {
-                emailContent.append("<tr>")
-                            .append("<td>").append(apiUrl).append("</td>")
-                            .append("<td style='text-align: center;'>").append("❌").append("</td>")
-                            .append("<td style='color: red;'>ERROR - ").append(e.getMessage()).append("</td>")
-                            .append("</tr>");
+                statusIcon = "❌"; // Error icon
+                statusCodeText = "Error";
+                statusCode = 0;
                 e.printStackTrace();
             }
+
+            emailContent.append("<tr>")
+                        .append("<td style='text-align: center;'>").append(serialNumber++).append("</td>")
+                        .append("<td>").append(apiUrl).append("</td>")
+                        .append("<td style='text-align: center;'>").append(statusIcon).append("</td>")
+                        .append("<td style='text-align: center;'>").append(statusCodeText).append("</td>")
+                        .append("</tr>");
         }
 
         emailContent.append("</table>");
@@ -58,7 +68,7 @@ public class ApiResponseStatus {
 
     public static void sendEmail(String emailContent) {
         final String senderEmail = "ambar.singh@snva.com";
-        final String senderPassword = "lovq evli zniy iivy";
+        final String senderPassword = "lovq evli zniy iivy"; // Consider using environment variables instead of hardcoding credentials.
         String recipientEmail = "ambar.singh@snva.com";
 
         Properties props = new Properties();
