@@ -12,9 +12,11 @@ import javax.mail.internet.*;
 
 public class ApiResponseStatus {
     private static final String[] API_URLS = {
-        "https://routes.traveloes.com/",
+        "https://routes.traveloes.com",
         "https://gfs.travomint.com",
-        "https://payment.udantu.com/"
+        "https://skyroutes.travomint.com",
+        "https://wegoroutes.travomint.com",
+        
     };
 
     public static void main(String[] args) {
@@ -96,7 +98,7 @@ public class ApiResponseStatus {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
-            message.setSubject("API Response Status Updates");
+            message.setSubject("API Response Status");
             message.setContent(emailContent, "text/html; charset=utf-8");
 
             Transport.send(message);
