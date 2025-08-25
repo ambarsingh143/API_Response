@@ -252,7 +252,7 @@ public class ApiResponseStatus {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("developer@travomint.com"));
-            message.setRecipients(Message.RecipientType.CC, InternetAddress.parse("ambar.singh@snva.com, davemaan@travomint.com, release.management@snva.com, abhishek.mathur@snva.com, prashant@snva.com, max@travomint.com,"));
+            message.setRecipients(Message.RecipientType.CC, InternetAddress.parse("ambar.singh@snva.com, davemaan@travomint.com, release.management@snva.com, abhishek.mathur@snva.com, prashant@snva.com, max@travomint.com, vishal.nirmal@snva.info, satya.prakash@snva.info"));
             message.setSubject(subject);
             message.setContent(emailContent, "text/html; charset=utf-8");
 
