@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.mail.*;
 import javax.mail.internet.*;
+import java.util.Scanner;
 
 public class ApiResponseStatus {
 
@@ -103,8 +104,9 @@ public class ApiResponseStatus {
         emailContent.append("<tr style='background:yellow'><th>Serial No.</th><th>URL</th><th>Status Code</th><th>Load Time (ms)</th></tr>");
 
         errorEmailContent.append("<html><body>");
+        errorEmailContent.append("<h2>🚨 Critical Issues Detected</h2>");
         errorEmailContent.append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>");
-        errorEmailContent.append("<tr style='background:red; color:white;'><th>Serial No.</th><th>URL</th><th>Status Code</th><th>Load Time (ms)</th></tr>");
+        errorEmailContent.append("<tr style='background:red; color:white;'><th>Serial No.</th><th>URL</th><th>Status</th><th>Load Time (ms)</th></tr>");
 
         int serialNumber = 1;
         boolean hasErrors = false;
@@ -128,7 +130,7 @@ public class ApiResponseStatus {
             }
         }
 
-        // 🔹 Wait 10 seconds before rechecking critical URLs
+        // 🔹 Wait 20 seconds before rechecking critical URLs
         if (!criticalUrls.isEmpty()) {
             try {
                 Thread.sleep(20000); // 20 sec delay
@@ -143,13 +145,28 @@ public class ApiResponseStatus {
             ApiResult recheckResult = checkSingleApi(apiUrl);
 
             if (recheckResult.isCritical) {
-                hasErrors = true;
-                errorEmailContent.append("<tr>")
-                        .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
-                        .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
-                        .append("<td style='color:red; font-weight:700;text-align: center'>").append(recheckResult.statusCodeText).append("</td>")
-                        .append("<td style='text-align: center;'>").append(recheckResult.loadTime == -1 ? "N/A" : recheckResult.loadTime + " ms").append("</td>")
-                        .append("</tr>");
+                // 🔹 Extra firewall check
+                boolean firewallBlocked = isFortinetBlock(apiUrl);
+
+                if (firewallBlocked) {
+                    errorEmailContent.append("<tr>")
+                            .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
+                            .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
+                            .append("<td style='color:orange; font-weight:700;text-align: center'>Firewall Blocked (Fortinet)</td>")
+                            .append("<td style='text-align: center;'>N/A</td>")
+                            .append("</tr>");
+                    System.out.println("⚠️ " + apiUrl + " blocked by Fortinet firewall.");
+                } else {
+                    hasErrors = true;
+                    errorEmailContent.append("<tr>")
+                            .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
+                            .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
+                            .append("<td style='color:red; font-weight:700;text-align: center'>").append(recheckResult.statusCodeText).append("</td>")
+                            .append("<td style='text-align: center;'>").append(recheckResult.loadTime == -1 ? "N/A" : recheckResult.loadTime + " ms").append("</td>")
+                            .append("</tr>");
+                }
+            } else {
+                System.out.println("✅ " + apiUrl + " recovered on recheck, skipping from error mail.");
             }
         }
 
@@ -165,7 +182,7 @@ public class ApiResponseStatus {
         // Send errors only if they persist
         if (hasErrors) {
             sendEmail(errorEmailContent.toString(),
-                    "🚨 Critical! ⚠️ !Attention Required 🚨 some APIs/Websites are down🚨 " + dateTimeNow);
+                    "🚨 Critical! ⚠️ Attention Required 🚨 Some APIs/Websites are down 🚨 " + dateTimeNow);
         } else {
             System.out.println("✅ No persistent errors found. Skipping error email.");
         }
@@ -197,8 +214,8 @@ public class ApiResponseStatus {
             URL url = new URL(apiUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(20000);
+            connection.setReadTimeout(20000);
             statusCode = connection.getResponseCode();
             long endTime = System.currentTimeMillis();
             loadTime = endTime - startTime;
@@ -230,10 +247,33 @@ public class ApiResponseStatus {
         return new ApiResult(statusCodeText, statusCode, loadTime, isCritical);
     }
 
+    // 🔹 Extra Fortinet Firewall Check
+    public static boolean isFortinetBlock(String apiUrl) {
+        try {
+            URL url = new URL(apiUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(20000);
+            connection.setReadTimeout(20000);
+
+            Scanner scanner = new Scanner(connection.getInputStream());
+            StringBuilder responseBody = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                responseBody.append(scanner.nextLine());
+            }
+            scanner.close();
+
+            String body = responseBody.toString().toLowerCase();
+            return body.contains("fortinet") || body.contains("fortigate") || body.contains("web filter");
+        } catch (Exception e) {
+            return false; // Could not check
+        }
+    }
+
     // 🔹 Send Email
     public static void sendEmail(String emailContent, String subject) {
         final String senderEmail = "ambar.singh@snva.com";
-        final String senderPassword = "lovq evli zniy iivy"; // ⚠️ Use env var for production
+        final String senderPassword = "lovq evli zniy iivy"; // ⚠️ Use env var/secrets in production
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
