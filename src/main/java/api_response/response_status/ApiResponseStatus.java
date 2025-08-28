@@ -16,6 +16,7 @@ import java.util.Scanner;
 public class ApiResponseStatus {
 
     private static final String[] API_URLS = {
+        // Your list of URLs...
         "https://routes.traveloes.com",
         "https://skyroutes.travomint.com",
         "https://wegoroutes.travomint.com",
@@ -113,11 +114,11 @@ public class ApiResponseStatus {
 
         List<String> criticalUrls = new ArrayList<>();
 
-        // 🔹 First pass → check all URLs
+        // First pass → check all URLs
         for (String apiUrl : API_URLS) {
             ApiResult result = checkSingleApi(apiUrl);
 
-            // Full status email
+            // Full status email content
             emailContent.append("<tr>")
                     .append("<td style='text-align: center;'>").append(serialNumber++).append("</td>")
                     .append("<td>").append(apiUrl).append("</td>")
@@ -130,22 +131,32 @@ public class ApiResponseStatus {
             }
         }
 
-        // 🔹 Wait 20 seconds before rechecking critical URLs
-        if (!criticalUrls.isEmpty()) {
-            try {
-                Thread.sleep(20000); // 20 sec delay
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // 🔹 Second pass → recheck only failing URLs
+        // Retry logic for critical URLs with up to 3 retries
         int errorSerialNumber = 1;
         for (String apiUrl : criticalUrls) {
-            ApiResult recheckResult = checkSingleApi(apiUrl);
+            boolean persistentError = false;
 
-            if (recheckResult.isCritical) {
-                // 🔹 Extra firewall check
+            for (int attempt = 1; attempt <= 3; attempt++) {
+                System.out.println("🔁 Rechecking " + apiUrl + " (Attempt " + attempt + ")");
+                ApiResult recheckResult = checkSingleApi(apiUrl);
+
+                if (!recheckResult.isCritical) {
+                    System.out.println("✅ " + apiUrl + " recovered on attempt " + attempt + ", skipping error email.");
+                    persistentError = false;
+                    break;
+                } else {
+                    persistentError = true;
+                    try {
+                        Thread.sleep(20000); // wait 20 sec before next retry
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            // If after retries it is still failing
+            if (persistentError) {
+                // Extra firewall check
                 boolean firewallBlocked = isFortinetBlock(apiUrl);
 
                 if (firewallBlocked) {
@@ -158,15 +169,15 @@ public class ApiResponseStatus {
                     System.out.println("⚠️ " + apiUrl + " blocked by Fortinet firewall.");
                 } else {
                     hasErrors = true;
+                    // Show final status from last recheck
+                    ApiResult finalResult = checkSingleApi(apiUrl);
                     errorEmailContent.append("<tr>")
                             .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
                             .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
-                            .append("<td style='color:red; font-weight:700;text-align: center'>").append(recheckResult.statusCodeText).append("</td>")
-                            .append("<td style='text-align: center;'>").append(recheckResult.loadTime == -1 ? "N/A" : recheckResult.loadTime + " ms").append("</td>")
+                            .append("<td style='color:red; font-weight:700;text-align: center'>").append(finalResult.statusCodeText).append("</td>")
+                            .append("<td style='text-align: center;'>").append(finalResult.loadTime == -1 ? "N/A" : finalResult.loadTime + " ms").append("</td>")
                             .append("</tr>");
                 }
-            } else {
-                System.out.println("✅ " + apiUrl + " recovered on recheck, skipping from error mail.");
             }
         }
 
@@ -179,7 +190,7 @@ public class ApiResponseStatus {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("(dd-MM-yyyy) - (HH:mm:ss)");
         String dateTimeNow = LocalDateTime.now().format(formatter);
 
-        // Send errors only if they persist
+        // Send errors only if persistent errors found
         if (hasErrors) {
             sendEmail(errorEmailContent.toString(),
                     "🚨 Critical! ⚠️ Attention Required 🚨 Some APIs/Websites are down 🚨 " + dateTimeNow);
@@ -188,7 +199,7 @@ public class ApiResponseStatus {
         }
     }
 
-    // 🔹 Helper Class
+    // Helper Class for API Result
     static class ApiResult {
         String statusCodeText;
         int statusCode;
@@ -203,7 +214,7 @@ public class ApiResponseStatus {
         }
     }
 
-    // 🔹 Check a single API
+    // Check a single API
     public static ApiResult checkSingleApi(String apiUrl) {
         String statusCodeText;
         int statusCode;
@@ -247,7 +258,7 @@ public class ApiResponseStatus {
         return new ApiResult(statusCodeText, statusCode, loadTime, isCritical);
     }
 
-    // 🔹 Extra Fortinet Firewall Check
+    // Fortinet firewall block check
     public static boolean isFortinetBlock(String apiUrl) {
         try {
             URL url = new URL(apiUrl);
@@ -266,11 +277,11 @@ public class ApiResponseStatus {
             String body = responseBody.toString().toLowerCase();
             return body.contains("fortinet") || body.contains("fortigate") || body.contains("web filter");
         } catch (Exception e) {
-            return false; // Could not check
+            return false; // Could not check, assume not blocked
         }
     }
 
-    // 🔹 Send Email
+    // Send email
     public static void sendEmail(String emailContent, String subject) {
         final String senderEmail = "ambar.singh@snva.com";
         final String senderPassword = "lovq evli zniy iivy"; // ⚠️ Use env var/secrets in production
