@@ -16,7 +16,6 @@ import java.util.Scanner;
 public class ApiResponseStatus {
 
     private static final String[] API_URLS = {
-        // Your list of URLs...
         "https://routes.traveloes.com",
         "https://skyroutes.travomint.com",
         "https://wegoroutes.travomint.com",
@@ -135,6 +134,7 @@ public class ApiResponseStatus {
         int errorSerialNumber = 1;
         for (String apiUrl : criticalUrls) {
             boolean persistentError = false;
+            ApiResult finalResult = null;
 
             for (int attempt = 1; attempt <= 3; attempt++) {
                 System.out.println("🔁 Rechecking " + apiUrl + " (Attempt " + attempt + ")");
@@ -143,9 +143,10 @@ public class ApiResponseStatus {
                 if (!recheckResult.isCritical) {
                     System.out.println("✅ " + apiUrl + " recovered on attempt " + attempt + ", skipping error email.");
                     persistentError = false;
-                    break;
+                    break; // recovered, stop retrying
                 } else {
                     persistentError = true;
+                    finalResult = recheckResult; // save latest status
                     try {
                         Thread.sleep(20000); // wait 20 sec before next retry
                     } catch (InterruptedException e) {
@@ -154,9 +155,8 @@ public class ApiResponseStatus {
                 }
             }
 
-            // If after retries it is still failing
-            if (persistentError) {
-                // Extra firewall check
+            // If after retries still failing → add to error email
+            if (persistentError && finalResult != null) {
                 boolean firewallBlocked = isFortinetBlock(apiUrl);
 
                 if (firewallBlocked) {
@@ -167,16 +167,15 @@ public class ApiResponseStatus {
                             .append("<td style='text-align: center;'>N/A</td>")
                             .append("</tr>");
                     System.out.println("⚠️ " + apiUrl + " blocked by Fortinet firewall.");
-                } else {
                     hasErrors = true;
-                    // Show final status from last recheck
-                    ApiResult finalResult = checkSingleApi(apiUrl);
+                } else {
                     errorEmailContent.append("<tr>")
                             .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
                             .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
                             .append("<td style='color:red; font-weight:700;text-align: center'>").append(finalResult.statusCodeText).append("</td>")
                             .append("<td style='text-align: center;'>").append(finalResult.loadTime == -1 ? "N/A" : finalResult.loadTime + " ms").append("</td>")
                             .append("</tr>");
+                    hasErrors = true;
                 }
             }
         }
@@ -190,7 +189,7 @@ public class ApiResponseStatus {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("(dd-MM-yyyy) - (HH:mm:ss)");
         String dateTimeNow = LocalDateTime.now().format(formatter);
 
-        // Send errors only if persistent errors found
+        // Send critical error email only if persistent errors found
         if (hasErrors) {
             sendEmail(errorEmailContent.toString(),
                     "🚨 Critical! ⚠️ Attention Required 🚨 Some APIs/Websites are down 🚨 " + dateTimeNow);
@@ -303,7 +302,7 @@ public class ApiResponseStatus {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(senderEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("developer@travomint.com"));
-            message.setRecipients(Message.RecipientType.CC, InternetAddress.parse("ambar.singh@snva.com, davemaan@travomint.com, release.management@snva.com, abhishek.mathur@snva.com, prashant@snva.com, max@travomint.com, vishal.nirmal@snva.info, satya.prakash@snva.info"));
+            message.setRecipients(Message.RecipientType.CC, InternetAddress.parse("ambar.singh@snva.com, davemaan@travomint.com, release.management@snva.com, abhishek.mathur@snva.com, max@travomint.com, vishal.nirmal@snva.info, satya.prakash@snva.info"));
             message.setSubject(subject);
             message.setContent(emailContent, "text/html; charset=utf-8");
 
