@@ -86,7 +86,13 @@ public class ApiResponseStatus {
         "https://www.travomint.ph/",
         "https://www.travomint.com.bd/",
         "https://www.travomint.us/",
-        "https://www.udantu.com/"
+        "https://www.udantu.com/",
+        "https://www.travomint.fr/",
+        "https://www.travomint.it/",
+        "https://www.travomint.de/",
+        "https://www.travomint.com.bd/",
+        "https://www.travomint.ph/",
+        "https://www.travomint.com.hk/"
     };
 
     public static void main(String[] args) {
