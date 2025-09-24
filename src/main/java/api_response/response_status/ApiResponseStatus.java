@@ -11,88 +11,84 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.mail.*;
 import javax.mail.internet.*;
-import java.util.Scanner;
 
 public class ApiResponseStatus {
 
     private static final String[] API_URLS = {
-        "https://routes.traveloes.com",
-        "https://skyroutes.travomint.com",
-        "https://wegoroutes.travomint.com",
-        "https://mca.travomint.com",
-        "https://routes-sites.traveloes.com",
-        "https://vbscaching.travomint.co",
-        "https://vbs.travomint.com/GOOGLE/",
-        "https://api.travomint.com",
-        "https://testapi.traveloes.com",
-        "https://staging.nobelmail.net",
-        "https://cache.travomint.com",
-        "https://cms.travomint.com",
-        "https://payment.travomint.com",
-        "http://api.traveloes.com",
-        "https://gl.travomint.com",
-        "https://postpapi.traveloes.com",
-        "https://gl.travomint.ae",
-        "https://gl.travomint.co.uk",
-        "https://gl.travomint.com.au",
-        "https://pay.travomint.com",
-        "https://get.travomint.com",
-        "https://gl.travomint.com.sg",
-        "https://hotelapi.travomint.com", // Special case
-        "https://ipf.travomint.com",
-        "https://googleroutes.travomint.com",
-        "https://stripe-payment.travomint.com/",
-        "https://paytmg.travomint.com/",
-        "https://us.travomint.com/",
-        "https://www.travomint.in/",
-        "https://www.travomint.com/",
-        "https://www.travomint.com.ar/",
-        "https://www.travomint.cl/",
-        "https://www.travomint.com.co/",
-        "https://www.travomint.co.cr/",
-        "https://www.travomint.com.do/",
-        "https://www.travomint.com.sv/",
-        "https://www.travomint.de/",
-        "https://www.travomint.com.gt/",
-        "https://www.travomint.com.mx/",
-        "https://www.travomint.com.pa/",
-        "https://www.travomint.com.pe/",
-        "https://www.travomint.com.pr/",
-        "https://www.travomint.es/",
-        "https://www.travomint.co.uk/",
-        "https://www.travomint.ae/",
-        "https://www.travomint.net/",
-        "https://www.travomint.com.au/",
-        "https://www.travomint.com.sg/",
-        "https://www.travomint.co.nz/",
-        "https://sa.travomint.net/",
-        "https://www.reservationsdeal.com/",
-        "https://www.fareskhalifa.com/",
-        "https://www.faresclick.com/",
-        "https://www.lookatfares.com/",
-        "https://www.reservationsmonk.com/",
-        "https://www.reservationsgate.com/",
-        "https://www.quickcaribbean.com/",
-        "https://www.stridetickets.com/",
-        "https://www.meuseair.com/",
-        "https://www.flieves.com/",
-        "https://www.helpquicky.com/",
-        "https://www.avtickets.com/",
-        "https://www.tripscanner.com.co/",
-        "https://www.pickreservations.com/",
-        "https://www.allairtrip.com/",
-        "https://www.webdereservadevuelos.es/",
-        "https://www.myfaresadda.com/",
-        "https://www.travomint.ph/",
-        "https://www.travomint.com.bd/",
-        "https://www.travomint.us/",
-        "https://www.udantu.com/",
-        "https://www.travomint.fr/",
-        "https://www.travomint.it/",
-        "https://www.travomint.de/",
-        "https://www.travomint.com.bd/",
-        "https://www.travomint.ph/",
-        "https://www.travomint.com.hk/"
+            "https://routes.traveloes.com",
+            "https://skyroutes.travomint.com",
+            "https://wegoroutes.travomint.com",
+            "https://mca.travomint.com",
+            "https://routes-sites.traveloes.com",
+            "https://vbscaching.travomint.co",
+            "https://vbs.travomint.com/GOOGLE/",
+            "https://api.travomint.com",
+            "https://testapi.traveloes.com",
+            "https://staging.nobelmail.net",
+            "https://cache.travomint.com",
+            "https://cms.travomint.com",
+            "https://payment.travomint.com",
+            "http://api.traveloes.com",
+            "https://gl.travomint.com",
+            "https://postpapi.traveloes.com",
+            "https://gl.travomint.ae",
+            "https://gl.travomint.co.uk",
+            "https://gl.travomint.com.au",
+            "https://pay.travomint.com",
+            "https://get.travomint.com",
+            "https://gl.travomint.com.sg",
+            "https://hotelapi.travomint.com", // special case
+            "https://ipf.travomint.com",
+            "https://googleroutes.travomint.com",
+            "https://stripe-payment.travomint.com/",
+            "https://paytmg.travomint.com/",
+            "https://us.travomint.com/",
+            "https://www.travomint.in/",
+            "https://www.travomint.com/",
+            "https://www.travomint.com.ar/",
+            "https://www.travomint.cl/",
+            "https://www.travomint.com.co/",
+            "https://www.travomint.co.cr/",
+            "https://www.travomint.com.do/",
+            "https://www.travomint.com.sv/",
+            "https://www.travomint.de/",
+            "https://www.travomint.com.gt/",
+            "https://www.travomint.com.mx/",
+            "https://www.travomint.com.pa/",
+            "https://www.travomint.com.pe/",
+            "https://www.travomint.com.pr/",
+            "https://www.travomint.es/",
+            "https://www.travomint.co.uk/",
+            "https://www.travomint.ae/",
+            "https://www.travomint.net/",
+            "https://www.travomint.com.au/",
+            "https://www.travomint.com.sg/",
+            "https://www.travomint.co.nz/",
+            "https://sa.travomint.net/",
+            "https://www.reservationsdeal.com/",
+            "https://www.fareskhalifa.com/",
+            "https://www.faresclick.com/",
+            "https://www.lookatfares.com/", // special case
+            "https://www.reservationsmonk.com/",
+            "https://www.reservationsgate.com/",
+            "https://www.quickcaribbean.com/",
+            "https://www.stridetickets.com/",
+            "https://www.meuseair.com/",
+            "https://www.flieves.com/",
+            "https://www.helpquicky.com/",
+            "https://www.avtickets.com/",
+            "https://www.tripscanner.com.co/",
+            "https://www.pickreservations.com/",
+            "https://www.allairtrip.com/",
+            "https://www.webdereservadevuelos.es/",
+            "https://www.myfaresadda.com/",
+            "https://www.travomint.com.bd/",
+            "https://www.travomint.us/",
+            "https://www.udantu.com/",
+            "https://www.travomint.fr/",
+            "https://www.travomint.it/",
+            "https://www.travomint.ph/",
+            "https://www.travomint.com.hk/"
     };
 
     public static void main(String[] args) {
@@ -101,102 +97,105 @@ public class ApiResponseStatus {
     }
 
     public static void checkApisAndSendEmail() {
-        StringBuilder emailContent = new StringBuilder();
-        StringBuilder errorEmailContent = new StringBuilder();
-
-        emailContent.append("<html><body>");
-        emailContent.append("<h2>API Response Status Updates</h2>");
-        emailContent.append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>");
-        emailContent.append("<tr style='background:yellow'><th>Serial No.</th><th>URL</th><th>Status Code</th><th>Load Time (ms)</th></tr>");
-
-        errorEmailContent.append("<html><body>");
-        errorEmailContent.append("<h2>🚨 Critical Issues Detected</h2>");
-        errorEmailContent.append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>");
-        errorEmailContent.append("<tr style='background:red; color:white;'><th>Serial No.</th><th>URL</th><th>Status</th><th>Load Time (ms)</th></tr>");
-
-        int serialNumber = 1;
-        boolean hasErrors = false;
-
+        Map<String, ApiResult> finalResults = new LinkedHashMap<>();
         List<String> criticalUrls = new ArrayList<>();
 
-        // First pass → check all URLs
+        // First check all URLs
         for (String apiUrl : API_URLS) {
             ApiResult result = checkSingleApi(apiUrl);
-
-            // Full status email content
-            emailContent.append("<tr>")
-                    .append("<td style='text-align: center;'>").append(serialNumber++).append("</td>")
-                    .append("<td>").append(apiUrl).append("</td>")
-                    .append("<td style='font-weight:700;'>").append(result.statusCodeText).append("</td>")
-                    .append("<td style='text-align: center;'>").append(result.loadTime == -1 ? "N/A" : result.loadTime + " ms").append("</td>")
-                    .append("</tr>");
-
+            finalResults.put(apiUrl, result);
             if (result.isCritical) {
                 criticalUrls.add(apiUrl);
             }
         }
 
-        // Retry logic for critical URLs with up to 3 retries
-        int errorSerialNumber = 1;
+        // Retry logic for critical URLs
         for (String apiUrl : criticalUrls) {
+            ApiResult original = finalResults.get(apiUrl);
             boolean persistentError = false;
-            ApiResult finalResult = null;
 
             for (int attempt = 1; attempt <= 3; attempt++) {
                 System.out.println("🔁 Rechecking " + apiUrl + " (Attempt " + attempt + ")");
-                ApiResult recheckResult = checkSingleApi(apiUrl);
+                ApiResult retryResult = checkSingleApi(apiUrl);
 
-                if (!recheckResult.isCritical) {
-                    System.out.println("✅ " + apiUrl + " recovered on attempt " + attempt + ", skipping error email.");
+                if (!retryResult.isCritical) {
+                    retryResult.statusCodeText = retryResult.statusCode + " Recovered ✅";
+                    finalResults.put(apiUrl, retryResult);
                     persistentError = false;
-                    break; // recovered, stop retrying
+                    break;
                 } else {
                     persistentError = true;
-                    finalResult = recheckResult; // save latest status
+                    original = retryResult;
                     try {
-                        Thread.sleep(20000); // wait 20 sec before next retry
+                        Thread.sleep(30000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
 
-            // If after retries still failing → add to error email
-            if (persistentError && finalResult != null) {
-                boolean firewallBlocked = isFortinetBlock(apiUrl);
+            if (persistentError) {
+                finalResults.put(apiUrl, original);
+            }
+        }
 
-                if (firewallBlocked) {
-                    errorEmailContent.append("<tr>")
-                            .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
-                            .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
-                            .append("<td style='color:orange; font-weight:700;text-align: center'>Firewall Blocked (Fortinet)</td>")
-                            .append("<td style='text-align: center;'>N/A</td>")
-                            .append("</tr>");
-                    System.out.println("⚠️ " + apiUrl + " blocked by Fortinet firewall.");
-                    hasErrors = true;
-                } else {
-                    errorEmailContent.append("<tr>")
-                            .append("<td style='text-align: center;'>").append(errorSerialNumber++).append("</td>")
-                            .append("<td style='font-weight:600;font-size:16px'>").append(apiUrl).append("</td>")
-                            .append("<td style='color:red; font-weight:700;text-align: center'>").append(finalResult.statusCodeText).append("</td>")
-                            .append("<td style='text-align: center;'>").append(finalResult.loadTime == -1 ? "N/A" : finalResult.loadTime + " ms").append("</td>")
-                            .append("</tr>");
-                    hasErrors = true;
-                }
+        // Build emails after retries
+        StringBuilder emailContent = new StringBuilder();
+        StringBuilder errorEmailContent = new StringBuilder();
+
+        emailContent.append("<html><body>")
+                .append("<h2>API Response Status Updates</h2>")
+                .append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>")
+                .append("<tr style='background:yellow'><th>S.No</th><th>URL</th><th>Status</th><th>Load Time</th></tr>");
+
+        errorEmailContent.append("<html><body>")
+                .append("<h2>🚨 Critical Issues Detected</h2>")
+                .append("<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse;'>")
+                .append("<tr style='background:red; color:white;'><th>S.No</th><th>URL</th><th>Status</th><th>Load Time</th></tr>");
+
+        int serial = 1, errSerial = 1;
+        boolean hasErrors = false;
+
+        for (Map.Entry<String, ApiResult> entry : finalResults.entrySet()) {
+            ApiResult res = entry.getValue();
+            String url = entry.getKey();
+
+            // Normal email
+            String statusStyle = res.isCritical ? "color:red;" : "color:green;";
+            emailContent.append("<tr>")
+                    .append("<td style='text-align:center;'>").append(serial++).append("</td>")
+                    .append("<td>").append(url).append("</td>")
+                    .append("<td style='text-align:center;").append(statusStyle).append("'><b>")
+                    .append(res.statusCodeText).append("</b></td>")
+                    .append("<td style='text-align:center;'>")
+                    .append(res.loadTime == -1 ? "N/A" : res.loadTime + " ms").append("</td>")
+                    .append("</tr>");
+
+            // Error email (final critical only)
+            if (res.isCritical) {
+                hasErrors = true;
+                errorEmailContent.append("<tr>")
+                        .append("<td style='text-align:center;'>").append(errSerial++).append("</td>")
+                        .append("<td style='font-size:16px'><b>").append(url).append("</b></td>")
+                        .append("<td style='text-align:center; color:red;font-size:15px'><b>")
+                        .append(res.statusCodeText).append("</b></td>")
+                        .append("<td style='text-align:center;'>")
+                        .append(res.loadTime == -1 ? "N/A" : res.loadTime + " ms").append("</td>")
+                        .append("</tr>");
             }
         }
 
         emailContent.append("</table></body></html>");
         errorEmailContent.append("</table></body></html>");
 
-        // Send full status email
+        // Send normal mail
         sendEmail(emailContent.toString(), "API Response Status Updates");
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("(dd-MM-yyyy) - (HH:mm:ss)");
-        String dateTimeNow = LocalDateTime.now().format(formatter);
-
-        // Send critical error email only if persistent errors found
+        // Send error mail only if errors left
         if (hasErrors) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("(dd-MM-yyyy) - (HH:mm:ss)");
+            String dateTimeNow = LocalDateTime.now().format(formatter);
+
             sendEmail(errorEmailContent.toString(),
                     "🚨 Critical! ⚠️ Attention Required 🚨 Some APIs/Websites are down 🚨 " + dateTimeNow);
         } else {
@@ -204,7 +203,6 @@ public class ApiResponseStatus {
         }
     }
 
-    // Helper Class for API Result
     static class ApiResult {
         String statusCodeText;
         int statusCode;
@@ -219,7 +217,7 @@ public class ApiResponseStatus {
         }
     }
 
-    // Check a single API
+    // ✅ Main Logic for Checking APIs
     public static ApiResult checkSingleApi(String apiUrl) {
         String statusCodeText;
         int statusCode;
@@ -238,19 +236,24 @@ public class ApiResponseStatus {
 
             statusCodeText = String.valueOf(statusCode);
 
-            // Special cases
             if (apiUrl.equals("https://hotelapi.travomint.com")) {
-                if (statusCode == 502 || statusCode == 503) statusCodeText += " ❌ ALERT";
-                else if (statusCode == 404) statusCodeText += " ✅ OK";
-                else statusCodeText += " ✅ Normal";
+                if (statusCode == 200 || statusCode == 404) {
+                    statusCodeText += " OK ✅";
+                } else {
+                    statusCodeText += " ❌ ALERT";
+                }
             } else if (apiUrl.contains("lookatfares.com")) {
-                if (statusCode == 403 || statusCode == 200) statusCodeText += " ✅ OK";
-                else if (statusCode >= 500 && statusCode <= 505) statusCodeText += " ⚠️ Server Error";
-                else statusCodeText += " ❌ Unexpected";
+                if (statusCode == 200 || statusCode == 403) {
+                    statusCodeText += " OK ✅";
+                } else {
+                    statusCodeText += " ❌ Unexpected";
+                }
             } else {
-                if (statusCode == 200) statusCodeText += " ✅ OK";
-                else if (statusCode >= 500 && statusCode <= 505) statusCodeText += " ⚠️ Server Error";
-                else statusCodeText += " ❌ Unknown";
+                if (statusCode == 200) {
+                    statusCodeText += " OK ✅";
+                } else {
+                    statusCodeText += " ❌ Not OK";
+                }
             }
 
         } catch (IOException e) {
@@ -259,37 +262,22 @@ public class ApiResponseStatus {
             loadTime = -1;
         }
 
-        boolean isCritical = (statusCode == 0 || (statusCode >= 500 && statusCode <= 505));
+        boolean isCritical;
+
+        if (apiUrl.equals("https://hotelapi.travomint.com")) {
+            isCritical = !(statusCode == 200 || statusCode == 404);
+        } else if (apiUrl.contains("lookatfares.com")) {
+            isCritical = !(statusCode == 200 || statusCode == 403);
+        } else {
+            isCritical = (statusCode != 200);
+        }
+
         return new ApiResult(statusCodeText, statusCode, loadTime, isCritical);
     }
 
-    // Fortinet firewall block check
-    public static boolean isFortinetBlock(String apiUrl) {
-        try {
-            URL url = new URL(apiUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(20000);
-            connection.setReadTimeout(20000);
-
-            Scanner scanner = new Scanner(connection.getInputStream());
-            StringBuilder responseBody = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                responseBody.append(scanner.nextLine());
-            }
-            scanner.close();
-
-            String body = responseBody.toString().toLowerCase();
-            return body.contains("fortinet") || body.contains("fortigate") || body.contains("web filter");
-        } catch (Exception e) {
-            return false; // Could not check, assume not blocked
-        }
-    }
-
-    // Send email
     public static void sendEmail(String emailContent, String subject) {
         final String senderEmail = "ambar.singh@snva.com";
-        final String senderPassword = "lovq evli zniy iivy"; // ⚠️ Use env var/secrets in production
+        final String senderPassword = "lovq evli zniy iivy"; // ⚠️ In production use env variable
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
